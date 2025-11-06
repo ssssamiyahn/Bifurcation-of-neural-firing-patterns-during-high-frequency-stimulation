@@ -1,0 +1,324 @@
+
+defrho=350
+
+//parameter of soma and AIS
+{
+ra        = 300
+rm        =20000
+c_m       = 1
+soma_cm   = 1
+Ek=-90
+Ena=45//60
+
+gna12_soma = 80
+gna12_ais_max = 3200   
+gna16_ais_max = 3200   
+gna16_nakeaxon= 300        
+vhalf_na12 = -30
+vhalf_na16 = -43
+vhalf_na = -30 
+gkv_soma = 20
+gkv_axon = 1000
+gkm = .3
+gkm_soma = gkm
+gkca = 3
+gkca_soma = gkca
+Eca=140
+gca = .3
+gca_soma = gca
+}
+
+// do not work, ignore；
+totalbuffer=0 
+koth=9 
+r=-1.09
+k2buf=0.0008
+DK=1.85 
+
+// Axon
+//K+&temperature
+ki0_k_ion=106  
+ko0_k_ion=3.5
+celsius=36 
+
+rhoa=70
+mycm=0.1		
+mygm=0.001
+		
+defgkfbar =0.03      //fastK at PS
+defgkfbar_kma =0.03      //0.03 //K+ on node
+
+defINaKmax = 0.00246
+defKmnai = 27.9
+defKmko = 5.3
+
+Rpn0=(rhoa*10000*.01)/(PI*((((nodeDiameter/2)+space_n)^2)-((nodeDiameter/2)^2)))
+Rpn1=(rhoa*10000*.01)/(PI*((((masDiameter/2)+space_p1)^2)-((masDiameter/2)^2)))
+Rpn2=(rhoa*10000*.01)/(PI*((((psDiameter/2)+space_p2)^2)-((psDiameter/2)^2)))
+Rpx=(rhoa*10000*.01)/(PI*((((axonDiameter/2)+space_i)^2)-((axonDiameter/2)^2)))
+v_pas=-65
+v_init=-70
+
+proc biophys() {	
+forsec all_nodes {
+
+insert xtra
+    Ra = rhoa
+    cm=1
+    	                     
+    insert nax
+                  gbar_nax=0.86//0.85
+                  Ra_nax= 0.4
+	          Rb_nax= 0.124    
+    insert kma
+                  gbar_kma= 0.02//0.03  
+                  //gl_kma=0.0001
+	          //st_kma=3//1  
+
+    insert NaKpump
+		INaKmax_NaKpump = defINaKmax
+		Kmnai_NaKpump = defKmnai
+		Kmko_NaKpump = defKmko 
+
+   insert kdifrl
+		rn_kdifrl=nodeDiameter/2
+		nodalGap_kdifrl=nodalGap
+		kbath_kdifrl = ko0_k_ion
+                 Dk_kdifrl=DK
+
+    insert extracellular
+		xraxial=Rpn0 
+		xg=1e10 
+		xc=0
+  }
+  
+forsec all_MAS {
+    Ra = rhoa*(1/(masDiameter/fiberDiameter)^2)
+    cm=1
+    insert pas
+		g_pas=0.00001	
+		e_pas=v_pas//v_init
+ 
+    insert kdifus
+               rseg_kdifus=masDiameter/2
+               sp_kdifus=0.004
+               TotalBuffer_kdifus=totalbuffer
+               kbath_kdifus=koth
+               r_kdifus=r
+               k2buf_kdifus=0
+               Dk_kdifus=DK  
+		
+    insert NaKpump
+		INaKmax_NaKpump = defINaKmax
+		Kmnai_NaKpump = defKmnai
+		Kmko_NaKpump = defKmko 
+    insert extracellular
+		xraxial=Rpn1 
+		xg=mygm/(numberOfLamella*2) 
+		xc=mycm/(numberOfLamella*2)
+  }
+  
+forsec all_PS {  
+    Ra = rhoa*(1/(psDiameter/fiberDiameter)^2)
+    cm=1
+
+   insert pas
+		g_pas= 0.00001
+		e_pas=v_pas//v_init
+   
+ insert fastK
+		gflut_fastK=0.00001
+		gkfbar_fastK=0.02//defgkfbar  //origin defgkfbar=0.03
+   
+    insert kdifus
+               rseg_kdifus=psDiameter/2
+               sp_kdifus=0.012
+               TotalBuffer_kdifus=totalbuffer
+               kbath_kdifus=koth
+               r_kdifus=r
+               k2buf_kdifus=0
+               Dk_kdifus=DK   
+    
+    insert NaKpump
+		INaKmax_NaKpump = defINaKmax
+		Kmnai_NaKpump = defKmnai
+		Kmko_NaKpump = defKmko 
+    insert extracellular
+		xraxial=Rpn2 
+		xg=mygm/(numberOfLamella*2) 
+		xc=mycm/(numberOfLamella*2)
+  }
+  
+forsec all_IS {
+    Ra = rhoa*(1/(axonDiameter/fiberDiameter)^2)
+    cm=1
+    insert pas
+		g_pas= 0.00001
+		e_pas=v_pas//v_init
+    
+   insert kdifus
+               rseg_kdifus=psDiameter/2
+               sp_kdifus=0.012
+               TotalBuffer_kdifus=totalbuffer
+               kbath_kdifus=koth
+               r_kdifus=r
+               k2buf_kdifus=0
+               Dk_kdifus=DK   
+    
+    insert NaKpump
+	                INaKmax_NaKpump = defINaKmax
+		Kmnai_NaKpump = defKmnai
+		Kmko_NaKpump = defKmko  
+    insert extracellular
+		xraxial=Rpx 
+		xg=mygm/(numberOfLamella*2) 
+		xc=mycm/(numberOfLamella*2)
+  }
+
+soma{
+
+insert calvrec
+insert extracellular
+
+    insert pas
+    Ra = ra 
+    cm = c_m
+    g_pas = 1/rm
+    e_pas = v_pas//v_init
+    
+      insert na12
+      gbar_na12 = 80
+      insert kv
+      gbar_kv = gkv_soma  
+      insert kms 
+      gbar_kms = gkm_soma 
+      insert kca
+      gbar_kca = gkca_soma  
+      insert ca
+      gbar_ca = gca_soma   
+        
+}
+
+hill{
+insert calvrec
+insert extracellular
+
+    insert pas
+    Ra = ra 
+    cm = c_m 
+    g_pas = 1/rm
+    e_pas = v_pas//v_init
+    
+    insert na12  
+    insert na16  
+    insert kv    
+    vshift_na12 = -35 - vhalf_na12 -10   
+    vshift_na16 = -35 - vhalf_na16 -10   
+    
+    hill.gbar_na12= gna12_ais_max     		*	1	*	0.8 
+    hill.gbar_na16 = gna16_ais_max	    *	0	*	0.8 
+    hill.gbar_kv = gkv_axon	*   0.1
+}
+
+for i=0,9 ais[i]{
+insert calvrec
+insert extracellular
+
+    insert pas
+    Ra = ra 
+    cm = c_m
+    g_pas = 1/rm
+    e_pas = v_pas//v_init
+
+    insert na12  
+    insert na16  
+    insert kv  
+    vshift_na12 = -35 - vhalf_na12 -10     
+    vshift_na16 = -35 - vhalf_na16 -10 
+}
+
+{
+    ais[0]. gbar_na12= gna12_ais_max      *	0.96	*	1                  								
+    ais[1]. gbar_na12= gna12_ais_max  		*	0.9	*	1                    
+    ais[2]. gbar_na12= gna12_ais_max  		*	0.75	*	1                  
+    ais[3]. gbar_na12= gna12_ais_max  		*	0.55	*	0.95               
+    ais[4]. gbar_na12= gna12_ais_max  		*	0.366985879	*	0.880142857  
+    ais[5]. gbar_na12= gna12_ais_max  		*	0.2	*	0.75                 
+    ais[6]. gbar_na12= gna12_ais_max  		*	0.100330761	*	0.647857143  
+    ais[7]. gbar_na12= gna12_ais_max  		*	0.011532125	*	0.520285714  
+    ais[8]. gbar_na12= gna12_ais_max  		*	0	*	0.428571429            
+    ais[9]. gbar_na12= gna12_ais_max  		*	0	*	0.342857143 
+    
+    ais[0]. gbar_na16 = gna16_ais_max	*	0.04	*	1   
+    ais[1]. gbar_na16 = gna16_ais_max	*	0.1	*	1   
+    ais[2]. gbar_na16 = gna16_ais_max	*	0.25	*	1   
+    ais[3]. gbar_na16 = gna16_ais_max	*	0.45	*	0.95   
+    ais[4]. gbar_na16 = gna16_ais_max	*	0.633014121	*	0.880142857   
+    ais[5]. gbar_na16 = gna16_ais_max	*	0.8	*	0.75   
+    ais[6]. gbar_na16 = gna16_ais_max	*	0.899669239	*	0.647857143   
+    ais[7]. gbar_na16 = gna16_ais_max	*	0.988467875	*	0.520285714   
+    ais[8]. gbar_na16 = gna16_ais_max	*	1	*	0.428571429   
+    ais[9]. gbar_na16 = gna16_ais_max	*	1	*	0.342857143  
+    
+    ais[0]. gbar_kv = gkv_axon	*	0.2 
+    ais[1]. gbar_kv = gkv_axon	*	0.3 
+    ais[2]. gbar_kv = gkv_axon	*	0.4 
+    ais[3]. gbar_kv = gkv_axon	*	0.5 
+    ais[4]. gbar_kv = gkv_axon	*	0.6 
+    ais[5]. gbar_kv = gkv_axon	*	0.7 
+    ais[6]. gbar_kv = gkv_axon	*	0.8 
+    ais[7]. gbar_kv = gkv_axon	*	0.9
+    ais[8]. gbar_kv = gkv_axon	*	1  
+    ais[9]. gbar_kv = gkv_axon	*	1  
+} 
+
+nakeaxon  {
+insert calvrec
+insert extracellular
+
+      insert pas
+      Ra = ra//rhoa//ra 
+      cm = c_m
+      g_pas = 1/rm
+      e_pas = v_pas//v_init
+
+      insert na12  
+      insert na16  
+      insert kv    
+      vshift_na12 = -35 - vhalf_na12 -10    
+      vshift_na16 = -35 - vhalf_na16 -10   
+      
+      gbar_na16 = 3200
+      gbar_na12 = 0
+      gbar_kv = gkv_axon  
+    }  
+
+
+for i=0,4  dendrite[i]{
+    insert pas
+    Ra =ra
+    cm = 1
+    g_pas = 1/rm
+    e_pas = v_pas 
+     insert na16  gbar_na16=20
+     insert kv    gbar_kv=20
+     insert kms    gbar_km= gkm 
+     insert kca   gbar_kca=gkca 
+     insert ca    gbar_ca=gca 
+} 
+  
+forall{
+      if(ismembrane("k_ion")) ek = Ek//-90
+      if(ismembrane("na_ion")) ena = 45
+      forall if(ismembrane("ca_ion")) {
+      eca = Eca
+      ion_style("ca_ion",0,1,0,0,0)
+      vshift_ca = 0
+    }
+}  
+  
+}
+biophys() 
+
+
+  

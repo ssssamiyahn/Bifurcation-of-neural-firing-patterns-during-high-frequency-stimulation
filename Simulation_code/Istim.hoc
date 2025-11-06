@@ -1,0 +1,26 @@
+objref stim_amp
+stim_amp = new Vector()
+stim_amp.resize(4800001) 
+stim_amp.fill(0)
+xopen("Istim100Hz10sbiphasicpulse.dat")
+AMP=1
+proc attach_stim() {
+  forall { 
+    if (ATTACHED__ == 0) {  
+      if (ismembrane("xtra")) {
+        stim_amp.play(&is_xtra, 0.025)        
+        ATTACHED__ = 1
+      }
+    }
+  }
+}
+proc setstim() {
+xopen("Istim100Hz10sbiphasicpulse.dat")
+stim_amp.mul($1)
+attach_stim()
+}
+xpanel("Extracellular Stimulus Current(mA)", 0)
+  xvalue("amp (mA)", "AMP", 1, "setstim(AMP)", 0, 1)
+xpanel(100,700)
+
+

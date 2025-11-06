@@ -1,0 +1,155 @@
+NumberAxon=1
+number_nodes=21	
+nodeSections = number_nodes *NumberAxon 
+masSections = 2*number_nodes *NumberAxon
+psSections = 2*number_nodes *NumberAxon
+iSections = 6*number_nodes *NumberAxon
+
+fiberDiameter=1
+{axonDiameter=0.8 nodeDiameter=0.7 masDiameter=0.7 psDiameter=0.8 internodalLength=100 psLength=5 numberOfLamella=15}
+masLength=3
+nodeLength=1
+nodalGap=0.95
+space_p1=0.0025
+space_p2=0.008	
+space_i=space_p2
+space_n=0.002
+
+isLength=(internodalLength-nodeLength-(2*masLength)-(2*psLength))/6
+
+proc celldef() {
+  topol()
+  subsets()
+  geom()
+}
+create IS[iSections], PS[psSections], MAS[masSections], node[nodeSections]
+create ais[10],hill,nakeaxon
+create    soma
+create dendrite[5]
+
+proc topol() { local i,j,k,n
+
+for n=0,NumberAxon-1{	
+  soma connect dendrite[0](1),0	
+  soma connect dendrite[1](1),0	
+  soma connect dendrite[2](1),0	
+  soma connect dendrite[3](1),0	
+  soma connect dendrite[4](1),0	
+  connect hill(0),soma(1)
+  connect ais[0] (0),hill(1)        
+  for i=0,8{              
+    connect ais[i+1] (0),ais[i] (1)  
+  }
+  connect nakeaxon(0),ais[9](1)       
+  connect  IS[6*n*number_nodes](0),nakeaxon(1) 
+  connect  IS[1+6*n*number_nodes](0),IS[6*n*number_nodes](1)
+  
+	for i=0,nodeSections/NumberAxon-1{	
+		for j=2,3{
+			connect IS[j+i*6+iSections/NumberAxon*n](0),IS[j-1+i*6+iSections/NumberAxon*n](1)
+		}
+		connect PS[2*i+psSections/NumberAxon*n](0),IS[3+i*6+iSections/NumberAxon*n](1)
+		connect MAS[2*i+masSections/NumberAxon*n](0),PS[2*i+psSections/NumberAxon*n](1)
+		connect node[i+nodeSections/NumberAxon*n](0),MAS[2*i+masSections/NumberAxon*n](1)
+	
+		connect MAS[2*i+1+masSections/NumberAxon*n](0),node[i+nodeSections/NumberAxon*n](1)
+		connect PS[2*i+1+psSections/NumberAxon*n](0),MAS[2*i+1+masSections/NumberAxon*n](1)
+		connect IS[4+i*6+iSections/NumberAxon*n](0),PS[2*i+1+psSections/NumberAxon*n](1)
+	
+		connect IS[5+i*6+iSections/NumberAxon*n](0),IS[4+i*6+iSections/NumberAxon*n](1)
+	
+		if(i<nodeSections/NumberAxon-1){
+			connect IS[6+i*6+iSections/NumberAxon*n](0),IS[5+i*6+iSections/NumberAxon*n](1)
+			connect IS[7+i*6+iSections/NumberAxon*n](0),IS[6+i*6+iSections/NumberAxon*n](1)
+		}	
+	}
+}           
+}
+
+
+objref all, all_nodes, all_MAS, all_PS, all_IS
+proc subsets() { local i
+    all = new SectionList()
+    for i=0, iSections-1 IS[i] all.append()
+    for i=0, psSections-1 PS[i] all.append()
+    for i=0, masSections-1 MAS[i] all.append()
+    for i=0, nodeSections-1 node[i] all.append()
+    soma all.append()
+    hill all.append()
+    for i=0,9 ais[i] all.append()
+
+  all_nodes = new SectionList()
+    for i=0, nodeSections-1 node[i] all_nodes.append()
+
+  all_MAS = new SectionList()
+    for i=0, masSections-1 MAS[i] all_MAS.append()
+
+  all_PS = new SectionList()
+    for i=0, psSections-1 PS[i] all_PS.append()
+
+  all_IS = new SectionList()
+    for i=0, iSections-1 IS[i] all_IS.append()
+}
+
+proc geom() {
+  forsec all_nodes {  nseg = 1  L = nodeLength  diam = nodeDiameter  }
+  forsec all_MAS {  nseg = 1  L = masLength  diam = fiberDiameter }
+  forsec all_PS { nseg = 1  L = psLength diam = fiberDiameter  }
+  forsec all_IS { nseg = 1  L = isLength  diam = fiberDiameter  }
+
+  soma {
+     	L = 15
+      nseg = 10				
+      diam(	0	:	0.1	) = 	2.5	:	5
+      diam(	0.1	:	0.2	) = 	5	:	7
+      diam(	0.2	:	0.3	) = 	7	:	8.1
+      diam(	0.3	:	0.4	) = 	8.1	:	9
+      diam(	0.4	:	0.5	) = 	9	:	9.5
+      diam(	0.5	:	0.6	) = 	9.5	:	10
+      diam(	0.6	:	0.7	) = 	10	:	9.5
+      diam(	0.7	:	0.8	) = 	9.5	:	8
+      diam(	0.8	:	0.9	) = 	8	:	5
+      diam(	0.9	:	1	) = 	5	:	3
+     }   
+     
+  hill {                							
+    L = 5						
+    nseg = 5						
+    diam(	0	:	0.25	) = 	3	:	2.2
+    diam(	0.25	:	0.5	) = 	2.2	:	1.5
+    diam(	0.5	:	0.75	) = 	1.5	:	1.22
+    diam(	0.75	:	1	) = 	1.22	:	1.22     							
+    }	  																	
+  for i=0,9 ais[i] {                 
+    L = 5
+    nseg = 10
+    diam = 1
+    }
+
+  nakeaxon {                
+    L = 1//50
+    nseg = 1
+    diam = 1
+    }   
+}
+
+
+  for i=0,4 dendrite[i]{
+    L=20
+    nseg=10
+      diam(	0	:	0.1	) = 	        2.5 : 2.5
+      diam(	0.1	:	0.2	) = 	  	2.5 : 2.5
+      diam(	0.2	:	0.3	) = 	   	2.5 : 2.5
+      diam(	0.3	:	0.4	) = 	    	2.5 : 2.5
+      diam(	0.4	:	0.5	) = 	    	2.5 : 2.5
+      diam(	0.5	:	0.6	) = 	   	2.5 : 2.5
+      diam(	0.6	:	0.7	) = 	    	2.5 : 2.5
+      diam(	0.7	:	0.8	) =     	2.5 : 2.5
+      diam(	0.8	:	0.9	) =	        2.5 : 2.5
+      diam(	0.9	:	1	) =	        2.5 : 2.5  
+    }
+
+access node[20]
+
+celldef()
+

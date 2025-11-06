@@ -1,0 +1,24 @@
+
+objref coefficient
+coefficient = new Vector()
+coefficient.resize(nodeSections) 
+coefficient.fill(0)
+xopen("x30y0-z30_SE@node10.dat")  //the file path should be different for each neuron to load elcetric potentials respectively
+rho = defrho  // ohm cm
+
+XE_stim = internodalLength*number_nodes/2  //middle of axon (um)//the coordinates of stimulation electrode are not required to be set since we load the potantials directly
+YE_stim = 0
+ZE_stim = 0
+
+proc setrx_stim() {  // now expects xyc coords as arguments
+  j=0
+  forall {
+    if (ismembrane("xtra")) {
+    
+      for (x,0) {		
+		 rx_stim_xtra(x)=coefficient.x[j]
+      }
+      j=j+1
+    }
+  }
+}
