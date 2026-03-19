@@ -1,0 +1,17 @@
+proc setpointers() { local done
+  forall {
+  
+    if (ismembrane("xtra")) {
+	for (x, 0) {
+		setpointer ex_xtra(x), e_extracellular(x)		
+	}
+    }
+  }
+}
+   forall {   
+    if (ismembrane("calvrec")) {
+	for (x, 0) {
+		setpointer im_calvrec(x), i_membrane(x)	
+	}
+    }
+ }    
