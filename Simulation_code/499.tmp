@@ -1,1 +1,0 @@
-MODOBJFILES= Nakpump.o ca.o calvrec.o fastK.o kca.o kdifrl.o kdifus.o kma.o kms.o ksteady.o kv.o na12.o na16.o nax.o xtra.o
