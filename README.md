@@ -11,6 +11,7 @@ https://neuron.yale.edu/neuron/
 
 Please follow the installation instructions provided on the official website for your operating system.
 
+
 **Before Running**
 
 Before running the simulation for the first time, you need to compile the mechanism (.mod) files.
@@ -22,8 +23,9 @@ In the directory containing the .mod files, run:
 This step is required to build the ion channel and membrane mechanism libraries used by NEURON.
 
 For more details, please refer to the official NEURON documentation.
+
+**Repository Structure**
 ```
-Repository Structure
 ├── COMSOL_eletric_field/
 │   └── (extracellular electric field data)
 │
@@ -37,6 +39,7 @@ Repository Structure
 │   ├── defsave_node.hoc
 │   ├── *.mod
 ```
+
 **File Description**
 1. Extracellular Electric Field
 
@@ -47,6 +50,7 @@ These data are used as input for the NEURON simulations.
 2. NEURON Simulation Code
 
 All simulation scripts are located in the `Simulation code/ folder`.
+
 
 **Core scripts**
 
@@ -86,6 +90,7 @@ These must be compiled using `mknrndll` before running the simulation.
 After compiling the `.mod` files, run the simulation with:
 
 `nrniv init.hoc`
+
 **Notes**
 
 Ensure that the path to the `COMSOL_eletric_field/` directory is correctly set in `calcrxc_stim.hoc`.
